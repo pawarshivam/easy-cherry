@@ -54,6 +54,7 @@ def init_repo() -> git.Repo:
         return repo
     except Exception as e:
         print('! Could not clone the respository %s' % (config.get('Settings', 'repo')))
+        print(e)
 
 
 def to_short(results):
