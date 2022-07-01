@@ -15,6 +15,7 @@ import copy
 config = configparser.ConfigParser()
 config.read('config.cfg')
 
+branch = ''
 
 def copy_results_ids_to_the_clipboard(results):
     pyperclip.copy('\n'.join([result['commit_id'] for result in results]))
@@ -35,6 +36,9 @@ def write_the_table_to_a_csv_file(stories, results):
 def init_repo() -> git.Repo:
     """
     """
+    global branch
+    branch = str(input('Branch: '))
+    
     try:
         if os.path.exists(config.get('Settings', 'clone')):
             shutil.rmtree(config.get('Settings', 'clone'))
@@ -44,11 +48,11 @@ def init_repo() -> git.Repo:
         repo = git.Repo.clone_from(
             config.get('Settings', 'repo'),
             config.get('Settings', 'clone'),
-            branch=str(input('Branch: ')),
+            branch=branch,
         )
 
         return repo
-    except:
+    except Exception as e:
         print('! Could not clone the respository %s' % (config.get('Settings', 'repo')))
 
 
@@ -70,7 +74,7 @@ def query(repo: git.Repo) -> None:
                        for story in input('Stories > ').split(',')]))
 
         results = []
-        for commit in list(repo.iter_commits(config.get('Settings', 'branch'), max_count=config.get('Settings', 'commits'))):
+        for commit in list(repo.iter_commits(branch, max_count=config.get('Settings', 'commits'))):
             for story in stories:
                 if story in commit.message.lower():
                     results.append({
@@ -87,6 +91,7 @@ def query(repo: git.Repo) -> None:
         print('1 > Copy commit ids to clipboard')
         print('2 > Save the table to a csv file')
         print('3 > Both :-)')
+        print('0 > 5* Do nothing')
         action = input('? > ')
 
         if action == '1':
